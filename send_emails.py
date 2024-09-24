@@ -16,7 +16,7 @@ def load_data(file_path):
     return df
 
 # Function to send an email
-def send_email(sender_email, sender_password, receiver_email, subject, body_html, smtp_server, port):
+def send_email(sender_email, sender_password, receiver_email, subject, body_html, smtp_server, port, use_ssl):
     # Create the email message
     msg = MIMEMultipart()
     msg['From'] = sender_email
@@ -26,16 +26,23 @@ def send_email(sender_email, sender_password, receiver_email, subject, body_html
     # Attach the HTML body to the email
     msg.attach(MIMEText(body_html, 'html'))
 
-    # Configure SSL context for secure connection
-    context = ssl.create_default_context()
-
     try:
-        # Connect to the SMTP server using SSL
-        with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
-            server.login(sender_email, sender_password)
-            # Send the email
-            server.sendmail(sender_email, receiver_email, msg.as_string())
-            print(f"Email successfully sent to {receiver_email}")
+        if use_ssl:
+            # Connect to the SMTP server using SSL (port 465)
+            context = ssl.create_default_context()
+            with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
+                server.login(sender_email, sender_password)
+                server.sendmail(sender_email, receiver_email, msg.as_string())
+        else:
+            # Connect to the SMTP server using STARTTLS (port 587)
+            with smtplib.SMTP(smtp_server, port) as server:
+                server.ehlo()  # Identify ourselves to the SMTP server
+                server.starttls()  # Upgrade the connection to TLS
+                server.ehlo()  # Re-identify after STARTTLS
+                server.login(sender_email, sender_password)
+                server.sendmail(sender_email, receiver_email, msg.as_string())
+
+        print(f"Email successfully sent to {receiver_email}")
     except Exception as e:
         print(f"Error sending email to {receiver_email}: {str(e)}")
 
@@ -60,7 +67,7 @@ def generate_html_body(template, data):
     return template.format(**data)
 
 # Function to send mass emails using data from a CSV file
-def send_mass_emails(csv_file_path, smtp_server, port, sender_email, sender_password, subject, template_name):
+def send_mass_emails(csv_file_path, smtp_server, port, sender_email, sender_password, subject, template_name, use_ssl):
     # Load data from the CSV file
     data = load_data(csv_file_path)
 
@@ -76,7 +83,7 @@ def send_mass_emails(csv_file_path, smtp_server, port, sender_email, sender_pass
         body_html = generate_html_body(template, row_data)
 
         # Send the email
-        send_email(sender_email, sender_password, row_data['email'], subject, body_html, smtp_server, port)
+        send_email(sender_email, sender_password, row_data['email'], subject, body_html, smtp_server, port, use_ssl)
 
 if __name__ == "__main__":
     # Load SMTP settings from environment variables
@@ -84,6 +91,7 @@ if __name__ == "__main__":
     port = int(os.getenv("SMTP_PORT", 465))  # Port for SMTP
     sender_email = os.getenv("SMTP_EMAIL")  # Your email from environment
     sender_password = os.getenv("SMTP_PASSWORD")  # Your email password from environment
+    use_ssl = os.getenv("USE_SSL", "True").lower() == 'true'  # Boolean to check if SSL should be used
 
     # Check if the required environment variables are set
     if not sender_email or not sender_password:
@@ -123,4 +131,4 @@ if __name__ == "__main__":
     template_name = template_files[template_choice]
 
     # Send mass emails using the selected CSV and template
-    send_mass_emails(csv_file_path, smtp_server, port, sender_email, sender_password, subject, template_name)
+    send_mass_emails(csv_file_path, smtp_server, port, sender_email, sender_password, subject, template_name, use_ssl)

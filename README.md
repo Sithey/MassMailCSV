@@ -50,6 +50,7 @@
     SMTP_PORT=465
     SMTP_EMAIL=your_email@example.com
     SMTP_PASSWORD=your_password
+    USE_SSL=True
     ```
 
 ## Usage
