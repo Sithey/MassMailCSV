@@ -69,6 +69,21 @@
 
 5. The script will send personalized emails based on the selected CSV file and template.
 
+## Creating HTML Email Templates
+
+We recommend using **[htmleditor.tools](https://htmleditor.tools/)** to easily create and customize your email templates. It's a free online tool that allows you to visually design HTML emails and export them for use in this project. Simply design your template, export the HTML, and save it in the `templates/` directory of your project.
+
+## Example Template:
+
+```html
+<html>
+<body>
+    <h1>Hello {name},</h1>
+    <p>Thank you for signing up!</p>
+</body>
+</html>
+```
+
 ## Folder Structure
 ```
 /MassMailCSV/
