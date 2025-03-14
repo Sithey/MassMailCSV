@@ -2,6 +2,8 @@
 
 **MassMailCSV** is a Python tool that allows you to send mass emails using data from CSV files and customizable HTML templates. The tool is designed to help you send personalized emails to a large number of recipients without having to manually write each email.
 
+An **Web version** of this project can be found here: https://github.com/Sithey/sharpmailer
+
 ## Features
 
 - Send mass emails based on CSV files with dynamic placeholders.
